@@ -321,17 +321,20 @@ def track_SORT(coords_list,mod_err=1,meas_err=1,state_err=100,fsld_max = 60):
             
     objs = active_objs + inactive_objs
     
+    final_objs = []
     # create final point array
     points_array = np.zeros([len(coords_list),len(objs)*2])-1
     for j in range(0,len(objs)):
         obj = objs[j]
         
-        hit_ratio = sum(obj.tags)/len(obj.tags)
         
-        if hit_ratio > 0.3: # only keep object that were found in first 3 frames
+        hit_ratio = sum(obj.tags)/len(obj.tags)
+        # only keep object that were found at least 30% of the time
+        if hit_ratio > 0.3:
+            final_objs.append(obj)
             first_frame = int(obj.first_frame)
             for i in range(0,len(obj.all)):
                 points_array[i+first_frame,j*2] = obj.all[i][0]
                 points_array[i+first_frame,(j*2)+1] = obj.all[i][1]
     
-    return objs, points_array
+    return final_objs, points_array

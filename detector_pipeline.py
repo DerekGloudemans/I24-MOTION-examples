@@ -11,7 +11,7 @@ from pytorch_yolo_v3.yolo_detector import Darknet_Detector
 from util_detect import detect_video, remove_duplicates
 from util_track import condense_detections,track_SORT
 from util_transform import get_best_transform, transform_pt_array, velocities_from_pts, plot_velocities
-from util_draw import draw_world, draw_track, draw_track_world
+from util_draw import draw_world, draw_track,draw_tracks, draw_track_world
 
 
 if __name__ == "__main__":
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     show = True
     
     # name in files
-    video_file = '/media/worklab/data_HDD/cv_data/video/110_foot_pole_test/Axis_Camera_16/cam_1_capture_000.avi'
+    input_file = '/media/worklab/data_HDD/cv_data/video/110_foot_pole_test/Axis_Camera_16/cam_1_capture_000.avi'
     
     # name out files
     detect_file = 'output_files/detections.avi'
@@ -55,22 +55,22 @@ if __name__ == "__main__":
     try:
         detections = np.load("output_files/detections{}.npy".format(savenum),allow_pickle= True)
     except:
-        detections = detect_video(video_file,net,show = True, save_file=detect_file)
+        detections = detect_video(input_file,net,show = True, save_file=detect_file)
         detections = remove_duplicates(detections)
         
         # remove this later
         np.save("output_files/detections{}.npy".format(savenum), detections)
         
-        detections = condense_detections(detections,style = "SORT_cls")
-        objs, point_array = track_SORT(detections,mod_err = 1, meas_err = 10, state_err = 1000, fsld_max = 25)
-        
-        # remove this later
-        f = open("output_files/objects{}.cpkl".format(savenum),'wb')
-        pickle.dump(objs,f)
-        f.close()
+    detections = condense_detections(detections,style = "SORT_cls")
+    objs, point_array = track_SORT(detections,mod_err = 1, meas_err = 10, state_err = 1000, fsld_max = 25)
+    
+    # remove this later
+    f = open("output_files/objects{}.cpkl".format(savenum),'wb')
+    pickle.dump(objs,f)
+    f.close()
 
 
-    draw_track(point_array,detect_file,track_file,show, trail_size = 75)
+    draw_tracks(objs,input_file,track_file,show, trail_size = 50)
     
     # get transform for camera to world space and transform object points
     cam_pts = np.load('im_coord_matching/cam_points2.npy')

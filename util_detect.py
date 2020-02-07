@@ -61,12 +61,14 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
             ret, frame = cap.read()
             
              # save frame to file if necessary
+            if save_file != None or show:
+                im = plot_detections(detections,im)
+            
             if save_file != None:
-                out.write(im_out)
+                out.write(im)
             
             # output frame if necessary
             if show:
-                im = plot_detections(detections,im)
                 im = cv2.resize(im, (1920, 1080))               
                 cv2.imshow("frame", im)
                 key = cv2.waitKey(1)
