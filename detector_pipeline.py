@@ -9,7 +9,7 @@ from pytorch_yolo_v3.yolo_detector import Darknet_Detector
 
 # import utility functions
 from util_detect import detect_video, remove_duplicates
-from util_track import track_naive,condense_detections,track_SORT
+from util_track import condense_detections,track_SORT
 from util_transform import get_best_transform, transform_pt_array, velocities_from_pts, plot_velocities
 from util_draw import draw_world, draw_track, draw_track_world
 
@@ -59,13 +59,13 @@ if __name__ == "__main__":
         detections = remove_duplicates(detections)
         
         # remove this later
-        np.save("pipeline_files/detections{}.npy".format(savenum), detections)
+        np.save("output_files/detections{}.npy".format(savenum), detections)
         
         detections = condense_detections(detections,style = "SORT_cls")
         objs, point_array = track_SORT(detections,mod_err = 1, meas_err = 10, state_err = 1000, fsld_max = 25)
         
         # remove this later
-        f = open("pipeline_files/objects{}.cpkl".format(savenum),'wb')
+        f = open("output_files/objects{}.cpkl".format(savenum),'wb')
         pickle.dump(objs,f)
         f.close()
 

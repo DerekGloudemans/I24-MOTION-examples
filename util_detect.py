@@ -48,7 +48,7 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
             # detect frame
             im = frame.copy()
             detections,im_out = detector.detect(frame,verbose = False)
-            detections = check_detections(detections.cpu().numpy())
+            detections = check_classes(detections.cpu().numpy())
             
             if True: # convert to numpy array
                 all_detections.append(detections)
@@ -86,7 +86,7 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
     print("Detection finished")
     return all_detections
 
-def check_detections(detections):
+def check_classes(detections):
     """
     Simple results modification to better suit the task of roadway object detection
     Removes all detections that are not person,bicycle,car,motorbike,bus,or truck
@@ -136,27 +136,3 @@ def remove_duplicates(detections):
         reduced_detections.append(new_item)
     return reduced_detections
 
-def condense_detections(detections,pt_location = "center"):
-    """
-    input - list of Dx8 numpy arrays corresponding to detections
-    pt_location - specifies where the point will be placed in the original bounding box
-    idx (always 0 in this imp.), 4 corner coordinates, objectness , score of class with max conf,class idx.
-    output - list of D x 2 numpy arrays with x,y center coordinates
-    """
-    new_list = []
-    if pt_location == "center":
-        for item in detections:
-            coords = np.zeros([len(item),2])
-            for i in range(0,len(item)):
-                coords[i,0] = (item[i,1]+item[i,3])/2.0
-                coords[i,1] = (item[i,2]+item[i,4])/2.0
-            new_list.append(coords)    
-    elif pt_location == "bottom_center":   
-        for item in detections:
-            coords = np.zeros([len(item),2])
-            for i in range(0,len(item)):
-                coords[i,0] = (item[i,1]+item[i,3])/2.0
-                coords[i,1] = item[i,4]
-            new_list.append(coords)          
-            
-    return new_list
