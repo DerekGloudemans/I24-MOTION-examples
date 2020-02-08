@@ -1,16 +1,7 @@
 from __future__ import division
-from itertools import combinations
 from scipy.optimize import linear_sum_assignment
-import time
-import torch
 import numpy as np
-import cv2 
-import matplotlib.pyplot as plt
-import random
-import _pickle as pickle
 from filterpy.kalman import KalmanFilter
-from util_draw import draw_track
-import re
 
 def condense_detections(detections,style = "center"):
     """
@@ -154,6 +145,10 @@ class KF_Object():
         self.cls = -1
         t = 1/30.0
         
+        # not used for tracking but later will store lists of relevant points
+        self.all_world = []
+        self.all_gps = []
+        
         # intialize state (generally x but called state to avoid confusion here)
         state = np.zeros([10,1])
         state[0,0] = xysr[0]
@@ -251,6 +246,8 @@ def track_SORT(coords_list,mod_err=1,meas_err=1,state_err=100,fsld_max = 60):
 
     # loop through all frames
     for frame_num in range(1,len(coords_list)):
+        
+        print("On frame {} of {}".format(frame_num,len(coords_list)))
         
         # predict new locations of all objects
         # look at next set of detected objects

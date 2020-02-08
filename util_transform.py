@@ -51,6 +51,46 @@ def transform_pt_array(point_array,M):
     
     return tf_point_array
     
+def transform_obj_list(object_list,M,M2 = None):
+    """
+    Applies 3 x 3  image transformation matrix M to each point stored in object's
+    point list
+    object_list - list of KFObjects
+    M - 3 x 3 transformation matrix for camera to world image space
+    M2 - None or 3 x 3 transformation matrix for camera to gps coordinate space
+    """
+    
+    for i, obj in enumerate(object_list):
+        points = obj.all
+        num_points = len(points)
+        
+        
+        # add third row
+        ones = np.ones([num_points,1])
+        points3d = np.concatenate((points,ones),1)
+        points3d = points3d[:,[0,1,4]]
+        # transform points
+        tf_points3d = np.transpose(np.matmul(M,np.transpose(points3d)))
+        
+        # condense to two-dimensional coordinates
+        tf_points = np.zeros([num_points,2])
+        tf_points[:,0] = tf_points3d[:,0]/tf_points3d[:,2]
+        tf_points[:,1] = tf_points3d[:,1]/tf_points3d[:,2]
+        
+        object_list[i].all_world = tf_points
+        
+        if M2 is not None:
+            tf_points3d = np.transpose(np.matmul(M2,np.transpose(points3d)))
+        
+            # condense to two-dimensional coordinates
+            tf_points = np.zeros([num_points,2])
+            tf_points[:,0] = tf_points3d[:,0]/tf_points3d[:,2]
+            tf_points[:,1] = tf_points3d[:,1]/tf_points3d[:,2]
+            
+            object_list[i].all_gps = tf_points
+        
+    return object_list
+                
 def get_best_transform(x,y):
     """
     given a set of N points in both x and y space, finds the best (lowest avg error)

@@ -122,95 +122,23 @@ def draw_tracks(object_list,file_in,file_out = None, show = False, mode = "line"
     print("Tracking in camera-space finished.")
 
 
-def draw_track(point_array, file_in, file_out = None, show = False, trail_size = 15): 
+    
+def draw_world(object_list, background_im, file_out = None, 
+               show = True,mode = "line",trail_size = 15, plot_label = True):
     """
-    Plots point_array on the video_file used to create it
-    
+    Takes in list of objects and background image, and plots tracked objects
+    objs - list of KF_Objects
+    background_im - string, path to image input file
+    file_out - string, path to desired video output file
+    show - bool
+    mode - "line" or "point" - specifies how previous frame locations are displayed
+    trail_size - int - specifies num of previous locations to plot
+    plot_coords - bool - specifies whether to plot gps coords
     """
-    # load video file 
-    cap = cv2.VideoCapture(file_in)
-    assert cap.isOpened(), "Cannot open file \"{}\"".format(file_in)
-    
-    # opens VideoWriter object for saving video file if necessary
-    if file_out != None:
-        # open video_writer object
-        frame_width = int(cap.get(3))
-        frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(file_out,cv2.CAP_FFMPEG,cv2.VideoWriter_fourcc('H','2','6','4'), 30, (frame_width,frame_height))
-    
-    # define random colors for each object
-    colormaps = [(random.randrange(0,255),random.randrange(0,255), random.randrange(0,255)) for k in range(0,int(len(point_array[0])/2))]
-    
-    ret = True
-    start = time.time()
-    frame_num = 0
-    
-    # read first frame
-    ret, frame = cap.read()
-    
-    while cap.isOpened():
-        
-        if ret:
-            
-            # Plot circles
-            for i in range(0, int(len(point_array[0])/2)):
-                try:
-                    center = (int(point_array[frame_num,i*2]),int(point_array[frame_num,(i*2)+1]))
-                    cv2.circle(frame,center, 5, colormaps[i], thickness = -1)
-                    
-                    for j in range(1,trail_size+1):
-                        if frame_num - j >= 0:
-                            center = (int(point_array[frame_num-j,i*2]),int(point_array[frame_num-j,(i*2)+1]))
-                            cv2.circle(frame,center, int(5*0.99**j), colormaps[i], thickness = -1)
-                except:
-                    pass # last frame is perhaps not done correctly
-            im_out = frame #write here
-            
-            #summary statistics
-            frame_num = frame_num + 1
-            print("FPS of the video is {:5.2f}".format( frame_num / (time.time() - start)))
-            
-            # save frame to file if necessary
-            if file_out != None:
-                out.write(im_out)
-            
-            # get next frame or None
-            ret, frame = cap.read()
-            
-            # output frame
-            if show:
-                if frame_width > 1920:
-                    im = cv2.resize(im_out, (int(frame_width/2), int(frame_height/2)))
-                else:
-                    im = im_out
-                cv2.imshow("frame", im)
-                key = cv2.waitKey(1)
-                if key & 0xFF == ord('q'):
-                    break
-                continue
-                
-        else:
-            break
-        
-    # close all resources used      
-    cap.release()
-    cv2.destroyAllWindows()
-    try:
-        out.release()
-    except:
-        pass
-    
-    print("Tracking in camera-space finished.")
-    
-    
-def draw_world(point_array, file_in, file_out = None, show = True):
-    """
-    outputs a video with points drawn on an image of the the world at each frame's 
-    timestep
-    """
+
     
     # load background image 
-    world_im = cv2.imread(file_in)
+    world_im = cv2.imread(background_im)
     
     # opens VideoWriter object for saving video file if necessary
     if file_out != None:
@@ -219,42 +147,83 @@ def draw_world(point_array, file_in, file_out = None, show = True):
         frame_height = int(world_im.shape[0])
         out = cv2.VideoWriter(file_out,cv2.CAP_FFMPEG,cv2.VideoWriter_fourcc('H','2','6','4'), 30, (frame_width,frame_height))
     
-    # define random colors for each object
-    colormaps = [(random.randrange(0,255),random.randrange(0,255), random.randrange(0,255)) for k in range(0,int(len(point_array[0])/2))]
-    
+    classes = ["person","bicycle","car","motorbike","NA","bus","train","truck"]
+    colors = [(255,255,0),(255,0,0),(50,50,200),(0,255,0),(0,255,255),(255,0,255),(100,255,255),(200,50,50)]
+
     start = time.time()
     frame_num = 0
-    # each loop processes one frame
-    for fr in point_array:
-            # create fresh copy of background
-            frame = world_im.copy()
+    while True:
+        frame = world_im.copy()
+        
+        # for each object
+        for i in range(0,len(object_list)):
+            obj = object_list[i]
             
-            # loop through points_array and plot circles on background
-            for i in range(0, int(len(point_array[0])/2)):
-                try:
-                    center = (int(point_array[frame_num,i*2]),int(point_array[frame_num,(i*2)+1]))
-                    cv2.circle(frame,center, 10, colormaps[i], thickness = -1)
-                except:
-                    pass # last frame is perhaps not done correctly, may also catch points that fall off image boundary
-            
-            #summary statistics
-            frame_num += 1
-            print("FPS of the video is {:5.2f}".format( frame_num / (time.time() - start)))
-            
-             # save frame to file if necessary
-            if file_out != None:
-                out.write(frame)
-            
-            # output frame
-            if show:
-                #im = cv2.resize(im_out, (1920, 1080))               
-                cv2.imshow("frame", frame)
-                key = cv2.waitKey(1)
-                if key & 0xFF == ord('q'):
-                    break
-                continue
+            # see if coordinate will be in range
+            if obj.first_frame <= frame_num:
+                if obj.first_frame + len(obj.all_world) > frame_num:  # if there's an error change to strictly greater than
+                    bbox = obj.all_world[frame_num - obj.first_frame]
+                    # plot point
+
+                    color = colors[int(obj.cls)]
+                    cv2.circle(frame,(int(bbox[0]),int(bbox[1])),4,color,-1)
+                    
+                    if plot_label:
+                        # plot label
+                        gps = obj.all_gps[frame_num-obj.first_frame]
+                        label =  " {}:{}".format(classes[int(obj.cls)],i)
+                        label2 = " {:.6f}".format(gps[0])
+                        label3 = "{:.6f}".format(gps[1])
+                        t_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_PLAIN,1 , 1)[0]
+                        cv2.putText(frame, label,( int(bbox[0]+5), int(bbox[1]+1.2*t_size[1])), cv2.FONT_HERSHEY_PLAIN,0.75, [225,255,255], 1)
+                        cv2.putText(frame, label2,( int(bbox[0]+5), int(bbox[1]+2.4*t_size[1])), cv2.FONT_HERSHEY_PLAIN,0.75, [225,255,255], 1)
+                        cv2.putText(frame, label3,( int(bbox[0]+5), int(bbox[1]+3.6*t_size[1])), cv2.FONT_HERSHEY_PLAIN,0.75, [225,255,255], 1)
+                    
+                    # plot previous locations if they were detected at that point
+                    if mode == "circle":
+                        for j in range(0,trail_size):
+                            idx = frame_num - j
+                            if idx >= obj.first_frame:
+                                point = obj.all[idx-obj.first_frame]
+                                point = (int(point[0]),int(point[1]))
+                                cv2.circle(frame,point, 1, color, thickness = -1)
+                            else:
+                                break
+                    # plot previous locations as lines
+                    elif mode == "line":
+                        prev = (int(bbox[0]),int(bbox[1]))
+                        for j in range(0,trail_size,2):
+                            idx = frame_num - j
+                            if idx >= obj.first_frame:
+                                point = obj.all_world[idx-obj.first_frame]
+                                point = (int(point[0]),int(point[1]))
+                                cv2.line(frame,point,prev,color, thickness = 3)
+                                prev = point
+        # then, try and plot previous locations until reaching trail_size
+        
+        #summary statistics
+        frame_num = frame_num + 1
+        print("FPS of the video is {:5.2f}".format( frame_num / (time.time() - start)))
+        
+        # save frame to file if necessary
+        if file_out != None:
+            out.write(frame)
+        
+        im = frame.copy()
+        # output frame
+        if show:
+            if frame_width < 1920:
+                im = cv2.resize(im, (int(frame_width*2), int(frame_height*2)))
+            else:
+                im = im
+            cv2.imshow("frame", im)
+            key = cv2.waitKey(1)
+            if key & 0xFF == ord('q'):
+                break
+            continue
                 
-            
+        else:
+            break
         
     # close all resources used      
     cv2.destroyAllWindows()
@@ -262,6 +231,7 @@ def draw_world(point_array, file_in, file_out = None, show = True):
         out.release()
     except:
         pass
+    
 
 
 def draw_track_world(point_array,tf_point_array,background_in,video_in,file_out = None, show = True,trail_size = 100):    

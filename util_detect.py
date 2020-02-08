@@ -75,7 +75,8 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
                 if key & 0xFF == ord('q'):
                     break
                 continue
-            
+            if frames > 500:
+                break
     # close all resources used      
     cap.release()
     cv2.destroyAllWindows()
