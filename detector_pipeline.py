@@ -10,8 +10,8 @@ from pytorch_yolo_v3.yolo_detector import Darknet_Detector
 # import utility functions
 from util_detect import detect_video, remove_duplicates
 from util_track import condense_detections,track_SORT
-from util_transform import get_best_transform, transform_pt_array, velocities_from_pts, plot_velocities
-from util_draw import draw_world, draw_track,draw_tracks, draw_track_world
+from util_transform import get_best_transform, transform_pt_array, velocities_from_pts, plot_velocities, transform_obj_list
+from util_draw import draw_world,draw_tracks, draw_track_world
 
 
 if __name__ == "__main__":
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     show = True
     
     # name in files
-    input_file = '/media/worklab/data_HDD/cv_data/video/110_foot_pole_test/Axis_Camera_16/cam_1_capture_000.avi'
+    input_file = '/media/worklab/data_HDD/cv_data/video/1-week-test/Camera_16/cam_1_capture_000.avi'
     
     # name out files
     detect_file = 'output_files/detections.avi'
@@ -73,13 +73,17 @@ if __name__ == "__main__":
     draw_tracks(objs,input_file,track_file,show, trail_size = 50)
     
     # get transform for camera to world space and transform object points
-    cam_pts = np.load('im_coord_matching/cam_points2.npy')
-    world_pts = np.load('im_coord_matching/world_points2.npy')
+    cam_pts = np.load('point_matching/example_cam_points.npy')
+    world_pts = np.load('point_matching/example_world_points.npy')
+    gps_pts = np.load('point_matching/example_gps_points.npy')
+    background_file = 'point_matching/world.png'
+    
     M = get_best_transform(cam_pts,world_pts)
-    tf_points = transform_pt_array(point_array,M)
-        
+    M2 = get_best_transform(cam_pts,gps_pts) 
+    objs = transform_obj_list(objs,M,M2)
+    
     # plot together
-    #draw_track_world(point_array,tf_points,background_file,detect_file,comb_file,show,trail_size = 50)
+    draw_world(objs,background_file,world_file,show,trail_size = 20,plot_label = True)
     
     #vel_array = velocities_from_pts(point_array,'im_coord_matching/cam_points2.npy','im_coord_matching/world_feet_points.npy')
     #plot_velocities(vel_array,1/30.0)

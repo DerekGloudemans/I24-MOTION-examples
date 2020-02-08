@@ -327,7 +327,7 @@ def track_SORT(coords_list,mod_err=1,meas_err=1,state_err=100,fsld_max = 60):
         
         hit_ratio = sum(obj.tags)/len(obj.tags)
         # only keep object that were found at least 30% of the time
-        if hit_ratio > 0.3:
+        if hit_ratio > 0.4:
             final_objs.append(obj)
             first_frame = int(obj.first_frame)
             for i in range(0,len(obj.all)):
