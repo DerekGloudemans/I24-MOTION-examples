@@ -28,10 +28,8 @@ The tracking strategy proposed in [Simple Online and Realtime Tracking](https://
 ![](readme_ims/tracks2.png)
 
 ## Trajectory Conversion
-Picture and gif of tracks
-
-## Trajectory extraction - show math and examples
-
+At present, trajectories are converted from image space to GPS coordinates via homography. Given a set of points from the image and their corresponding GPS coordinates, the projective transform mapping the image points into GPS points is determined and used to transform subsequent object locations into GPS coordinate locations. The projection error is fairly low in areas close to the points used to define the transform (the upper roadways in this image), but are much worse farther from the points used to define the tranform (the lower roadways and offset trajectories in this image). In the future, more points will be used to map between image space and GPS coordinates via bilinear interpolation. 
+![](readme_ims/trajectories2.png)
 
 
 ## Future Work -
