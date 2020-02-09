@@ -20,7 +20,7 @@ To run the pipeline yourself, download clone the repository and install the requ
 - (optional) - map imagery or overhead view of the area in which vehicles are tracked.
 
 ## Object detection 
-At present, this repository uses a [pytorch implementation of YOLO v3](https://github.com/ayooshkathuria/pytorch-yolo-v3) for detection of vehicles in each frame. Detection accuracy is fairly high but is still susceptible to occasional missed objects and false detections. Experiments have also been run using the [torchvision implementation of Faster-RCNN for detection](https://pytorch.org/docs/stable/_modules/torchvision/models/detection/faster_rcnn.html). These algorithms run at about 1-2 fps at present on 4k imagery, far short of the realtime goal of 30 fps. Future work will explore alternative network architectures and strategies for speeding up detection based on the tracking-context. 
+At present, this repository uses a [pytorch implementation of YOLO v3](https://github.com/ayooshkathuria/pytorch-yolo-v3) for detection of vehicles in each frame. Detection accuracy is fairly high but is still susceptible to occasional missed objects and false detections. Experiments have also been run using the [torchvision implementation of Faster-RCNN for detection](https://pytorch.org/docs/stable/_modules/torchvision/models/detection/faster_rcnn.html). These algorithms run at about 1-2 fps at present on 4k imagery, far short of the realtime goal of 30 fps. Future work will explore alternative network architectures and strategies for speeding up detection based on the tracking context. 
 ![](readme_ims/detections.png)
 
 ## Object Tracking
@@ -32,10 +32,13 @@ At present, trajectories are converted from image space to GPS coordinates via h
 ![](readme_ims/trajectories2.png)
 
 
-## Future Work -
-extending RCNN with FastTrack
-3D object detection - 
-Refinements to tracks in 3D space
-Refinements to filter method (deal with false positives)
-Multiple plane projection (bilinear interpolation)
-Eventually using GPS tracks to synch
+## Other Future Work 
+### 3D object detection 
+Estimating vehicle locations as 2D bounding boxes causes errors when these locations are projected into GPS coordinates because it is difficult to estimate the footprint of a vehicle based on its 2D bounding box. In the future, a 3D object detector will be used, which much more precisely localizes vehicle footprints and will minimize projection error. Unfortunately, training 3D object detectors for this task is a challenge because most existing datasets of 3D vehicles are focused on self-driving contexts, where vehicles are nearby and perspective plays a large role in vehicle appearances. To combat this, we are currently working on 3D model-based methods for creating labeled image data on which to train 3D object detectors.
+![](readme_ims/vehicle_model.png)
+
+### Filtering Refinements
+Currently, we make no refinements to the Kalman Filtering method. In the future, we will take into account the context of vehicle motion to intelligently eliminate false positives and to constrain vehicle trajectories within reasonable physical limits. Additionally, we will implement a deep feature encoding for object reidentification as in [Deep SORT](https://arxiv.org/abs/1703.07402) to help match tracks across cameras and after occlusions. 
+
+### GPS-based Trajectory Projection
+Manually matching points in an image to GPS coordinate counterparts is time-consuming and potentially innaccurate. In the future, we will use tracked traectories of vehicles instrumented with GPS-logging devices to establish accurate transforms between image space and GPS coordinates.
