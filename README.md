@@ -20,11 +20,12 @@ To run the pipeline yourself, download clone the repository and install the requ
 - (optional) - map imagery or overhead view of the area in which vehicles are tracked.
 
 ## Object detection 
-At present, this repository uses a [pytorch implementation of YOLO v3](https://github.com/ayooshkathuria/pytorch-yolo-v3) for detection of vehicles in each frame. Detection accuracy is fairly high but is still susceptible to occasional missed objects and false detections. Experiments have also been run using Faster-RCNN for detection. These algorithms run at about 2-3 fps at present, far short of the realtime goal of 30 fps. Future work will explore alternative network architectures and strategies for speeding up detection based on the tracking-context. 
-![](images_for_readme/kitti_2d_im.png)
+At present, this repository uses a [pytorch implementation of YOLO v3](https://github.com/ayooshkathuria/pytorch-yolo-v3) for detection of vehicles in each frame. Detection accuracy is fairly high but is still susceptible to occasional missed objects and false detections. Experiments have also been run using the [torchvision implementation of Faster-RCNN for detection](https://pytorch.org/docs/stable/_modules/torchvision/models/detection/faster_rcnn.html). These algorithms run at about 1-2 fps at present on 4k imagery, far short of the realtime goal of 30 fps. Future work will explore alternative network architectures and strategies for speeding up detection based on the tracking-context. 
+![](readme_ims/detections.png)
 
 ## Object Tracking
- show math equations for state model and measurement
+The tracking strategy proposed in [Simple Online and Realtime Tracking](https://ieeexplore.ieee.org/abstract/document/7533003) is implemented. This strategy uses Kalman filtering for estimating the future positions of tracked objects so that they can be matched to detected objects in future frames. Additionally, this strategy allows the position of objects to be estimated even when they are not detected in some frames. 
+![](readme_ims/tracks.png)
 
 ## Trajectory Conversion
 Picture and gif of tracks
@@ -33,7 +34,7 @@ Picture and gif of tracks
 
 
 
-## Other Areas of Future Work -
+## Future Work -
 extending RCNN with FastTrack
 3D object detection - 
 Refinements to tracks in 3D space
