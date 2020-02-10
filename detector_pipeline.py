@@ -10,8 +10,8 @@ from pytorch_yolo_v3.yolo_detector import Darknet_Detector
 # import utility functions
 from util_detect import detect_video, remove_duplicates
 from util_track import condense_detections,track_SORT
-from util_transform import get_best_transform, transform_pt_array, velocities_from_pts, plot_velocities, transform_obj_list
-from util_draw import draw_world,draw_tracks, draw_track_world
+from util_transform import  transform_obj_list, write_json, get_best_transform
+from util_draw import draw_world,draw_tracks
 
 
 if __name__ == "__main__":
@@ -63,20 +63,14 @@ if __name__ == "__main__":
         
     detections = condense_detections(detections,style = "SORT_cls")
     objs, point_array = track_SORT(detections,mod_err = 1, meas_err = 10, state_err = 1000, fsld_max = 25)
-    
-    # remove this later
-    f = open("output_files/objects{}.cpkl".format(savenum),'wb')
-    pickle.dump(objs,f)
-    f.close()
-
 
     draw_tracks(objs,input_file,track_file,show, trail_size = 50)
     
     # get transform for camera to world space and transform object points
-    cam_pts = np.load('point_matching/example_cam_points.npy')
-    world_pts = np.load('point_matching/example_world_points.npy')
-    gps_pts = np.load('point_matching/example_gps_points.npy')
-    background_file = 'point_matching/world.png'
+    cam_pts = np.load('point_matching/cam_1_points.npy')
+    world_pts = np.load('point_matching/world_1_points.npy')
+    gps_pts = np.load('point_matching/gps_1_points.npy')
+    background_file = 'point_matching/world_1.png'
     
     M = get_best_transform(cam_pts,world_pts)
     M2 = get_best_transform(cam_pts,gps_pts) 
@@ -85,6 +79,13 @@ if __name__ == "__main__":
     # plot together
     draw_world(objs,background_file,world_file,show,trail_size = 20,plot_label = True)
     
-    #vel_array = velocities_from_pts(point_array,'im_coord_matching/cam_points2.npy','im_coord_matching/world_feet_points.npy')
-    #plot_velocities(vel_array,1/30.0)
-    
+    metadata =   {
+            "camera_id": 1,
+            "start_time":1,
+            "num_frames":1,
+            "frame_rate":1
+            }
+    out = write_json(objs,metadata,60,"test_json_out.json")
+    import json
+    with open("test_json_out.json",'r') as fp:
+        loaded_out = json.load(fp)

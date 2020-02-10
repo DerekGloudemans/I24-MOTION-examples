@@ -2,13 +2,39 @@
 
 from __future__ import division
 from itertools import combinations
-from scipy.optimize import linear_sum_assignment
-import time
-import torch
+import json
 import numpy as np
 import cv2 
-import matplotlib.pyplot as plt
-import random
+
+   
+
+def get_best_transform(x,y):
+    """
+    given a set of N points in both x and y space, finds the best (lowest avg error)
+    transform of 4 points using oppenCV's getPerspectiveTransform
+    returns- transformation matrix M
+    """
+    # test a simple translation
+    if False:
+        x = np.array([[0,0],[0,1],[1,0],[1,1]])
+        y = np.array([[1,1],[1,2],[2,1],[2,2]])  
+        M_correct = np.array([[1,0,1],[0,1,1],[0,0,1]])
+        
+    x = np.float32(x)
+    y = np.float32(y)
+    all_idx = [i for i in range(0,len(x))]
+    combos = tuple(combinations(all_idx,4))
+    min_err = np.inf
+    bestM = 0
+    for comb in combos:
+         M = cv2.getPerspectiveTransform(x[comb,:],y[comb,:])
+         xtf = transform_pt_array(x,M)
+         err = avg_transform_error(xtf,y)
+         if err < min_err:
+             min_err = err
+             bestM = M
+             bestComb = comb
+    return bestM
 
 def avg_transform_error(orig,trans):
     n_pts = len(orig)
@@ -50,7 +76,7 @@ def transform_pt_array(point_array,M):
     tf_point_array = tf_points.reshape(original_shape)
     
     return tf_point_array
-    
+ 
 def transform_obj_list(object_list,M,M2 = None):
     """
     Applies 3 x 3  image transformation matrix M to each point stored in object's
@@ -91,89 +117,47 @@ def transform_obj_list(object_list,M,M2 = None):
         
     return object_list
                 
-def get_best_transform(x,y):
+def write_json(object_list, metadata,num_frames, out_file = None):
     """
-    given a set of N points in both x and y space, finds the best (lowest avg error)
-    transform of 4 points using oppenCV's getPerspectiveTransform
-    returns- transformation matrix M
     """
-    # test a simple translation
-    if False:
-        x = np.array([[0,0],[0,1],[1,0],[1,1]])
-        y = np.array([[1,1],[1,2],[2,1],[2,2]])  
-        M_correct = np.array([[1,0,1],[0,1,1],[0,0,1]])
-        
-    x = np.float32(x)
-    y = np.float32(y)
-    all_idx = [i for i in range(0,len(x))]
-    combos = tuple(combinations(all_idx,4))
-    min_err = np.inf
-    bestM = 0
-    for comb in combos:
-         M = cv2.getPerspectiveTransform(x[comb,:],y[comb,:])
-         xtf = transform_pt_array(x,M)
-         err = avg_transform_error(xtf,y)
-         if err < min_err:
-             min_err = err
-             bestM = M
-             bestComb = comb
-    return bestM
+    classes = ["person","bicycle","car","motorbike","NA","bus","train","truck"]
 
-def velocities_from_pts(point_array,in_coords,out_coords, dt = 1/30.0):
-    '''
-    point_array - a num_frames x (2*num_objects) array where each row 
-    corresponds to a frame and each 2 columns to an object
-    in_coords - coordinates from camera space
-    out_coords - coordinates in real world feet space
-    dt - time between frames
-    vel_array - a num_frames-1 x num objects array where each row corresponds
-    to the speed of objects between two frames and each column to an object
-    '''
+#    metadata = {
+#            "camera_id": camera_id,
+#            "start_time":start_time,
+#            "num_frames":num_frames,
+#            "frame_rate":frame_rate
+#            }
+    data = {}
     
-    # Convert to world_feet_space
-    cam_pts = np.load(in_coords)
-    world_feet_pts = np.load(out_coords)
-    
-    # transform points
-    M = get_best_transform(cam_pts,world_feet_pts)
-    tf_points = transform_pt_array(point_array,M)
-    
-    # initialize velocity array
-    vel_array = np.zeros([np.size(tf_points,0)-1,int(np.size(tf_points,1)/2)])
-    
-    # i iterates rows/frames, j iterates columns/objects
-    for i in range(0,len(vel_array)):
-        for j in range(0,len(vel_array[0])):
-            #calculate speed for entry i,j
-            dx = tf_points[i+1,j*2]-tf_points[i,j*2]
-            dy = tf_points[i+1,j*2]-tf_points[i,j*2]
-            dist = np.sqrt(dx**2 + dy**2)
-            vel_array[i,j] = dist / dt
+    for frame_num in range(0,num_frames):
+        frame_data = []
+        
+        # for each object
+        for i in range(0,len(object_list)):
+            obj = object_list[i]
             
-    return vel_array
-
-
-def plot_velocities(vel_array,dt,smooth_width = 21):
-    """
-    Pyplot line plot of velocities over time for detected objects with optional smoothing
-    """
-    fps2mph =  0.681818
-    
-    plt.figure()
-    plt.xlabel('time(s)')
-    plt.ylabel('speed(mph)')
-    plt.ylim([0,60])
-    times = [t*dt for t in range(0,len(vel_array))]
-    for col in range(0,len(vel_array[0])):
-        obj_vels = vel_array[:,col]*fps2mph
-        
-        # smooth by convolving hamming window
-        width = smooth_width
-        hamming = np.hamming(width)
-        # smooth and normalize
-        smooth = np.convolve(obj_vels,hamming)/sum(hamming)
-        # remove edges resulting from convolution
-        smooth = smooth[width//2:-width//2+1]
-        
-        # plot
-        plt.plot(times,smooth)
+            # see if coordinate will be in range
+            if obj.first_frame <= frame_num:
+                if obj.first_frame + len(obj.all) > frame_num:  
+                    veh_data = {}
+                    
+                    idx = frame_num - obj.first_frame
+                    veh_data["id_num"] = i
+                    veh_data["class"] = classes[int(obj.cls)]
+                    veh_data["detected"] = obj.tags[idx]
+                    veh_data["image_position"] = (obj.all[idx]).tolist()
+                    veh_data["world_position"] = (obj.all_world[idx]).tolist()
+                    veh_data["gps_position"] = (obj.all_gps[idx]).tolist()
+                    
+                    frame_data.append(veh_data)
+        data[frame_num] = frame_data
+            
+    all_data = {
+            "metadata":metadata,
+            "data":data    
+            }
+    if out_file is not None:
+        with open(out_file, 'w') as fp:
+            json.dump(all_data, fp)
+    return all_data

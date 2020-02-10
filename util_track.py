@@ -240,6 +240,7 @@ def track_SORT(coords_list,mod_err=1,meas_err=1,state_err=100,fsld_max = 60):
             row = row[:4]
         obj = KF_Object(row,0,mod_err,meas_err,state_err)
         obj.all.append(obj.get_coords())
+        obj.tags.append(1)
         if keep_classes:
             obj.cls = cls
         active_objs.append(obj)
