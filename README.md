@@ -54,3 +54,16 @@ To run the pipeline yourself,clone the repository and install the required packa
 - (optional) - path to saved numpy file containing satellite image matching points (4x2) array with 4 x,y coordinate pairs
 - (optional) - path to saved numpy file containing GPS coordinate matching points (4x2) array with 4 x,y coordinate pairs
 - (optional) - satellite image of the area in which vehicles are tracked
+
+Example with detection and tracking only:
+
+``` 
+python pipeline.py video_file.avi output_directory
+```
+
+Example with detection,tracking,trajectory conversion to gps coordinates and json writing:
+
+```
+python pipeline.py video_file.avi output_directory --cam  cam_pts.npy --sat sat_im_pts.npy --gps gps_pts.npy --sat_im satellite_image.jpg
+```
+
