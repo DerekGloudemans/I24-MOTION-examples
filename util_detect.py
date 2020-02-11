@@ -1,16 +1,10 @@
 # contains utility functions for detection
 
 from __future__ import division
-from itertools import combinations
-from scipy.optimize import linear_sum_assignment
 import time
 import torch
 import numpy as np
 import cv2 
-import matplotlib.pyplot as plt
-import random
-import os
-from PIL import Image
 
 def detect_video(video_file, detector, verbose = True, show = True, save_file = None):
     """

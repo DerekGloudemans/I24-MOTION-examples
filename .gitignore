@@ -12,3 +12,7 @@ temp_examples/objects0.cpkl
 batch_pipeline.py
 
 output_files/
+
+detector_pipeline_not_for_publishing.py
+
+detector_pipeline.py
