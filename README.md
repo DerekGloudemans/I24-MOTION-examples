@@ -1,13 +1,10 @@
 # I-24 MOTION examples
-
-##### TODO - Insert best GIF here
-![](images_for_readme/systemwide.gif)
-
-##### Add Map to show where each camera points
+![](readme_ims/60.png)
 
 The I-24 Mobility Technology Interstate Observation Network (MOTION) is a planned open-road testbed that will enable continuous,ongoing coverage of a roadway at the fine-grained vehicle trajectory level. MOTION consists of a network of 400 pole-mounted 4k resolution cameras recording video data that covers a six mile stretch of freeway in its entirety. The raw video data stream ex-ceeds 130 TB/day of traffic data footage that must be processed in real-time to extract precise vehicle locations, trajectories, and other relevant information from the entire monitored portion ofroadway. Data is reported for each of the 180,000 vehicles per day that travel on the roadway throughout the full length of the instrumented freeway. The first phase of MOTION is scheduled for completed construction by the end of 2020 and will consist of a 3-pole, 18 camera deployment covering roughly 1800 feet of roadway. Phase II will consist of the full 6-mile streth of roadway and is scheduled for completion by the end of 2022.
 
 ## Test Examples
+![](readme_ims/all-trajectories.gif)
 Data in this repository was generated from a 6-camera, single pole test deployment from August 9-16, 2019. One-minute examples of video from each camera can be found at the following link. Privacy considerations prevent more of the data from being posted at this time.
 - [Camera 0 Example](https://youtu.be/IswkVF8NMfw)
 - [Camera 1 Example](https://youtu.be/8itD0df2QtQ)
