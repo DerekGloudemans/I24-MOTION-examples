@@ -1,2 +1,14 @@
 
 output_files/detections.avi
+
+*.avi
+
+temp_examples/detections0.npy
+
+temp_examples/objects0.cpkl
+
+*.pyc
+
+batch_pipeline.py
+
+output_files/

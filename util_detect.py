@@ -45,6 +45,10 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
         
         if ret:
             
+            # remove this later
+            if frames > 1800:
+                break
+            
             # detect frame
             im = frame.copy()
             detections,im_out = detector.detect(frame,verbose = False)
@@ -55,7 +59,7 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
             
             #summary statistics
             frames += 1
-            print("Video detection rate: {:5.2f} fps".format( frames / (time.time() - start)))
+            print("Frame {}: {:5.2f} fps".format(frames, frames / (time.time() - start)))
             
             # get next frame or None
             ret, frame = cap.read()
@@ -75,8 +79,8 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
                 if key & 0xFF == ord('q'):
                     break
                 continue
-            if frames > 500:
-                break
+            
+
     # close all resources used      
     cap.release()
     cv2.destroyAllWindows()
@@ -87,7 +91,7 @@ def detect_video(video_file, detector, verbose = True, show = True, save_file = 
     torch.cuda.empty_cache()
  
     print("Detection finished")
-    return all_detections
+    return all_detections,frames
 
 def check_classes(detections):
     """

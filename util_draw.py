@@ -6,7 +6,7 @@ import numpy as np
 import cv2 
 import random
 
-def draw_tracks(object_list,file_in,file_out = None, show = False, mode = "line",trail_size = 15):
+def draw_tracks(object_list,file_in,file_out = None, show = False, mode = "line",trail_size = 15,frame_lim = np.inf):
     """
     Takes in list of objects and video file, and plots tracked objects
     objs - list of KF_Objects
@@ -37,6 +37,8 @@ def draw_tracks(object_list,file_in,file_out = None, show = False, mode = "line"
     ret, frame = cap.read()
     
     while cap.isOpened():
+        if frame_num > frame_lim:
+            break
         
         if ret:
             
@@ -107,6 +109,7 @@ def draw_tracks(object_list,file_in,file_out = None, show = False, mode = "line"
                 if key & 0xFF == ord('q'):
                     break
                 continue
+            
                 
         else:
             break
@@ -124,7 +127,7 @@ def draw_tracks(object_list,file_in,file_out = None, show = False, mode = "line"
 
     
 def draw_world(object_list, background_im, file_out = None, 
-               show = True,mode = "line",trail_size = 15, plot_label = True):
+               show = True,mode = "line",trail_size = 15, plot_label = True,frame_lim = np.inf):
     """
     Takes in list of objects and background image, and plots tracked objects
     objs - list of KF_Objects
@@ -153,6 +156,8 @@ def draw_world(object_list, background_im, file_out = None,
     start = time.time()
     frame_num = 0
     while True:
+        if frame_num > frame_lim:
+            break
         frame = world_im.copy()
         
         # for each object
@@ -203,7 +208,7 @@ def draw_world(object_list, background_im, file_out = None,
         
         #summary statistics
         frame_num = frame_num + 1
-        print("FPS of the video is {:5.2f}".format( frame_num / (time.time() - start)))
+        print("Frame {}: {:5.2f} fps".format(frame_num, frame_num / (time.time() - start)))
         
         # save frame to file if necessary
         if file_out != None:
@@ -221,9 +226,8 @@ def draw_world(object_list, background_im, file_out = None,
             if key & 0xFF == ord('q'):
                 break
             continue
-                
-        else:
-            break
+
+        
         
     # close all resources used      
     cv2.destroyAllWindows()
@@ -244,7 +248,7 @@ def draw_track_world(point_array,tf_point_array,background_in,video_in,file_out 
     
     # load background image 
     world_im = cv2.imread(background_in)
-    
+    print( world_im)
     # opens VideoWriter object for saving video file if necessary
     if file_out != None:
         # open video_writer object

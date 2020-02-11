@@ -67,7 +67,7 @@ if __name__ == "__main__":
     draw_tracks(objs,input_file,track_file,show, trail_size = 50)
     
     # get transform for camera to world space and transform object points
-    cam_pts = np.load('point_matching/cam_1_points.npy')
+    cam_pts = np.load('../point_matching/cam_1_points.npy')
     world_pts = np.load('point_matching/world_1_points.npy')
     gps_pts = np.load('point_matching/gps_1_points.npy')
     background_file = 'point_matching/world_1.png'
