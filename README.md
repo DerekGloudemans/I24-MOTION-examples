@@ -3,31 +3,25 @@
 ##### TODO - Insert best GIF here
 ![](images_for_readme/systemwide.gif)
 
+##### Add Map to show where each camera points
+
 The I-24 Mobility Technology Interstate Observation Network (MOTION) is a planned open-road testbed that will enable continuous,ongoing coverage of a roadway at the fine-grained vehicle trajectory level. MOTION consists of a network of 400 pole-mounted 4k resolution cameras recording video data that covers a six mile stretch of freeway in its entirety. The raw video data stream ex-ceeds 130 TB/day of traffic data footage that must be processed in real-time to extract precise vehicle locations, trajectories, and other relevant information from the entire monitored portion ofroadway. Data is reported for each of the 180,000 vehicles per day that travel on the roadway throughout the full length of the instrumented freeway. The first phase of MOTION is scheduled for completed construction by the end of 2020 and will consist of a 3-pole, 18 camera deployment covering roughly 1800 feet of roadway. Phase II will consist of the full 6-mile streth of roadway and is scheduled for completion by the end of 2022.
 
-## Output Examples
+## Test Examples
+Data in this repository was generated from a 6-camera, single pole test deployment from August 9-16, 2019. One-minute examples of video from each camera can be found at the following link. Privacy considerations prevent more of the data from being posted at this time.
 - [Camera 0 Example](https://youtu.be/IswkVF8NMfw)
 - [Camera 1 Example](https://youtu.be/8itD0df2QtQ)
 - [Camera 2 Example](https://youtu.be/-f-4LNn61PM)
 - [Camera 3 Example](https://youtu.be/PXJgy5UNZkw)
 - [Camera 4 Example](https://youtu.be/3E0QxdA9B-w)
-- [Huge Combo](https://youtu.be/qP9nAXVPsbg)
 - [Combined Trajectories](https://youtu.be/HFetLV5S5zA)
 
 ## About this Repository
 This repository serves as an example of the algorithms that will convert raw video data into global vehicle trajectories. Included are:
-
-- example_trajectories.json - an example of the output trajectories from the processing pipeline
-- pipeline.py - 
-- example video, coordinates, and world image
-- and assorted utility files containing the functions used by pipeline.py:
-
-
-To run the pipeline yourself,clone the repository and install the required packages indicated in requirements.txt. Note that this code was implemented for running on a GPU (but with slight modification could run on a CPU). Then, run pipeline.py with the following inputs:
-
-- path to video file
-- (optional) - path to a csv containing transform matching points
-- (optional) - map imagery or overhead view of the area in which vehicles are tracked.
+- **example_data** - examples of JSON output format of trajectory data 
+- **point_matching** - examples of the data used to match camera images to corresponding GPS coordinates and satellite imagery
+- **pipeline.py** - an example that can be run on any video to produce detections and tracks, and (if matching coordinates are input) GPS trajectories
+- **assorted utility files** containing the functions used by pipeline.py
 
 ## Object detection 
 At present, this repository uses a [pytorch implementation of YOLO v3](https://github.com/ayooshkathuria/pytorch-yolo-v3) for detection of vehicles in each frame. Detection accuracy is fairly high but is still susceptible to occasional missed objects and false detections. Experiments have also been run using the [torchvision implementation of Faster-RCNN for detection](https://pytorch.org/docs/stable/_modules/torchvision/models/detection/faster_rcnn.html). These algorithms run at about 1-2 fps at present on 4k imagery, far short of the realtime goal of 30 fps. Future work will explore alternative network architectures and strategies for speeding up detection based on the tracking context. 
@@ -51,3 +45,12 @@ Currently, we make no refinements to the Kalman Filtering method. In the future,
 
 ### GPS-based Trajectory Projection
 Manually matching points in an image to GPS coordinate counterparts is time-consuming and potentially innaccurate. In the future, we will use tracked traectories of vehicles instrumented with GPS-logging devices to establish accurate transforms between image space and GPS coordinates.
+
+## How to Run
+To run the pipeline yourself,clone the repository and install the required packages indicated in requirements.txt. Note that this code was implemented for running on a GPU (but with slight modification could run on a CPU). Then, run pipeline.py with the following inputs:
+
+- path to video file
+- (optional) - path to saved numpy file containing camera image matching points (4x2) array with 4 x,y coordinate pairs
+- (optional) - path to saved numpy file containing satellite image matching points (4x2) array with 4 x,y coordinate pairs
+- (optional) - path to saved numpy file containing GPS coordinate matching points (4x2) array with 4 x,y coordinate pairs
+- (optional) - satellite image of the area in which vehicles are tracked
